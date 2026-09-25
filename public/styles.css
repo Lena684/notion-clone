@@ -153,6 +153,7 @@ kbd { border: 1px solid #e6e6e1; border-radius: 4px; background: #fafaf8; paddin
 .wiki-link:hover { color: var(--accent-dark); border-bottom-color: var(--accent); }
 .backlinks { max-width: 730px; margin: 36px auto 0; padding-top: 17px; border-top: 1px solid var(--line); }
 .backlinks h3 { margin: 0 0 10px; color: #8b8f88; font-size: 11px; font-weight: 600; }
+.backlinks-empty { margin: 0; color: #a1a59d; font-size: 11px; }
 .backlink-item { display: inline-flex; align-items: center; gap: 7px; margin-right: 8px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 5px; background: white; color: #71766e; text-decoration: none; font-size: 11px; }
 .backlink-item:hover { border-color: #cadbd2; color: var(--accent); }
 .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; max-width: 1000px; margin: 0 auto; }

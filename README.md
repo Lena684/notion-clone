@@ -1,8 +1,8 @@
 # Local Notes and Databases
 
-A private, local-first notes and databases app with a server-served browser
-interface and a Node.js backend API. The service binds only to `127.0.0.1` and
-stores data on this computer.
+A private, local-first notes and databases app with server-rendered HTML views
+and a Node.js backend API. The service binds only to `127.0.0.1` and stores
+data on this computer.
 
 ## Requirements and setup
 
@@ -20,16 +20,23 @@ The API is available at `http://127.0.0.1:3000`. Set `PORT` to choose another
 local port. The server always binds to the IPv4 loopback address and does not
 listen on the network.
 
-Open `http://127.0.0.1:3000/` for the browser workspace. It supports Markdown
-pages with a live preview, wiki links and backlinks, FTS5 search, simple
-inline-editable databases, and on-demand Markdown export. The interface is
-served from `public/` and uses the local API for saved data.
+Open `http://127.0.0.1:3000/` for the browser workspace. Express renders the
+home page and each note/database page from SQLite on the server. The vanilla
+JavaScript in `public/` enhances editing, search, and inline database updates
+through the local API; it does not build the initial page views. The app
+supports Markdown pages with a live preview, wiki links and backlinks, FTS5
+search, simple inline-editable databases, and on-demand Markdown export.
 
 For development with automatic restarts, run `npm run dev`.
 
 ## API
 
 All request and response bodies use JSON. Errors use `{ "error": "..." }`.
+
+The server-rendered browser routes are `GET /` (home), `GET /pages/:id` (a
+page or database), and `GET /settings`. `POST /export` runs an export from the
+settings form and redirects back to `/settings`. Static CSS and JavaScript
+assets are served from `public/`.
 
 | Method and path | Purpose |
 | --- | --- |

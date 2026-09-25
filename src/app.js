@@ -6,11 +6,14 @@ import { HttpError, parseId, requireObject, requireString } from './errors.js';
 import { exportPages } from './export.js';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { exportDirectory } from './config.js';
+import { renderHomeDocument, renderNotFoundDocument, renderPageDocument, renderSettingsDocument } from './views.js';
 
 const app = express();
 app.disable('x-powered-by');
-app.use(express.static(fileURLToPath(new URL('../public', import.meta.url))));
+app.use(express.static(fileURLToPath(new URL('../public', import.meta.url)), { index: false }));
 app.use(express.json({ limit: '1mb', strict: true }));
+app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 
 const getPage = db.prepare('SELECT id, title, content, created_at, updated_at FROM pages WHERE id = ?');
 const getPageDatabase = db.prepare('SELECT * FROM page_databases WHERE page_id = ?');
@@ -139,6 +142,42 @@ function databasePayload(database) {
       .all(database.id).map((row) => ({ ...row, values: parseJson(row.values_json, {}) })),
   };
 }
+
+function pageListForViews() {
+  return db.prepare(`
+    SELECT p.id, p.title, p.created_at, p.updated_at,
+      EXISTS(SELECT 1 FROM page_databases d WHERE d.page_id = p.id) AS hasDatabase
+    FROM pages p ORDER BY p.title COLLATE NOCASE
+  `).all();
+}
+
+app.get('/', async (_request, response) => {
+  response.type('html').send(await renderHomeDocument(pageListForViews()));
+});
+
+app.get('/pages/:id', async (request, response) => {
+  const pageId = parseId(request.params.id, 'page id');
+  const page = getPage.get(pageId);
+  if (!page) return response.status(404).type('html').send(renderNotFoundDocument(pageListForViews()));
+  const fullPage = {
+    ...pagePayload(page),
+    database: databasePayload(getPageDatabase.get(pageId)),
+  };
+  response.type('html').send(await renderPageDocument(fullPage, pageListForViews()));
+});
+
+app.get('/settings', async (_request, response) => {
+  response.type('html').send(await renderSettingsDocument(pageListForViews(), exportDirectory));
+});
+
+app.post('/export', async (_request, response, next) => {
+  try {
+    await exportPages();
+    response.redirect(303, '/settings');
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.get('/api/health', (_request, response) => response.json({ status: 'ok' }));
 

@@ -52,7 +52,10 @@ test('serves the browser workspace and its frontend assets', async () => {
   assert.match(htmlResponse.headers.get('content-type'), /text\/html/);
   const html = await htmlResponse.text();
   assert.match(html, /Fieldnotes/);
-  assert.match(html, /\.\/app\.js/);
+  assert.match(html, /src="\/app\.js"/);
+  assert.match(html, /data-server-rendered="true"/);
+  assert.match(html, /data-view="home"/);
+  assert.match(html, /id="server-page-state"/);
 
   const [scriptResponse, styleResponse] = await Promise.all([
     fetch(`${baseUrl}/app.js`),
@@ -79,6 +82,16 @@ test('page CRUD resolves wiki links and backlinks', async () => {
   const target = await request(`/api/pages/${targetResult.data.id}`);
   assert.deepEqual(target.data.backlinks.map((page) => page.title), ['Home']);
 
+  const targetHtmlResponse = await fetch(`${baseUrl}/pages/${targetResult.data.id}`);
+  assert.equal(targetHtmlResponse.status, 200);
+  const targetHtml = await targetHtmlResponse.text();
+  assert.match(targetHtml, /<article class="page-body" id="page-content">[\s\S]*Useful notes\./);
+  assert.match(targetHtml, /class="backlinks"[\s\S]*Home/);
+
+  const sourceHtmlResponse = await fetch(`${baseUrl}/pages/${sourceResult.data.id}`);
+  const sourceHtml = await sourceHtmlResponse.text();
+  assert.match(sourceHtml, new RegExp(`href="/pages/${targetResult.data.id}"`));
+
   const updated = await request(`/api/pages/${sourceResult.data.id}`, {
     method: 'PATCH', body: { content: 'See [[research]] and [[Missing]].' },
   });
@@ -89,7 +102,7 @@ test('page CRUD resolves wiki links and backlinks', async () => {
 
 test('database rows validate types, support inline updates, and are searchable', async () => {
   const pageResult = await request('/api/pages', {
-    method: 'POST', body: { title: 'Reading list', content: '' },
+    method: 'POST', body: { title: 'Reading list', content: 'Databases are notes too.' },
   });
   const pageId = pageResult.data.id;
   const databaseResult = await request(`/api/pages/${pageId}/database`, {
@@ -125,6 +138,23 @@ test('database rows validate types, support inline updates, and are searchable',
 
   const persisted = await request(`/api/pages/${pageId}`);
   assert.equal(persisted.data.database.rows[0].values.status, 'To read');
+
+  const renderedDatabase = await fetch(`${baseUrl}/pages/${pageId}`);
+  const renderedHtml = await renderedDatabase.text();
+  assert.match(renderedHtml, /class="database-table"/);
+  assert.match(renderedHtml, /<article class="page-body" id="page-content">[\s\S]*Databases are notes too\./);
+  assert.match(renderedHtml, /No pages link here yet\./);
+
+  const emptyDatabasePage = await request('/api/pages', {
+    method: 'POST', body: { title: 'Empty columns', content: '' },
+  });
+  await request(`/api/pages/${emptyDatabasePage.data.id}/database`, {
+    method: 'PUT', body: { columns: [] },
+  });
+  const renderedEmptyDatabase = await fetch(`${baseUrl}/pages/${emptyDatabasePage.data.id}`);
+  const emptyDatabaseHtml = await renderedEmptyDatabase.text();
+  assert.match(emptyDatabaseHtml, /This database has no columns/);
+  assert.match(emptyDatabaseHtml, /No pages link here yet\./);
 });
 
 test('Markdown preview sanitizes unsafe markup and manual export preserves wiki text', async () => {
