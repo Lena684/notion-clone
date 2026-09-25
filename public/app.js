@@ -342,6 +342,14 @@
     if (currentPage) {
       const article = content.querySelector('#page-content');
       decorateWikiLinks(article, currentPage);
+      let backlinks = content.querySelector('.backlinks');
+      if (!backlinks) {
+        content.insertAdjacentHTML('beforeend', backlinkMarkup(currentPage));
+        backlinks = content.querySelector('.backlinks');
+      }
+      if (backlinks && !(currentPage.backlinks || []).length && !backlinks.querySelector('.backlinks-empty')) {
+        backlinks.insertAdjacentHTML('beforeend', '<p class="backlinks-empty">No pages link here yet.</p>');
+      }
       content.querySelectorAll('.database-table input, .database-table select').forEach(input => input.addEventListener('change', () => saveDatabaseCell(input)));
     }
     if (currentPage && new URLSearchParams(location.search).has('create-database') && !currentPage.database) {
@@ -381,7 +389,10 @@
   searchInput.addEventListener('keydown', event => {
     if (event.key === 'ArrowDown') { event.preventDefault(); moveSearchSelection(1); }
     if (event.key === 'ArrowUp') { event.preventDefault(); moveSearchSelection(-1); }
-    if (event.key === 'Enter') searchResults.querySelector('.search-result.selected')?.click() || searchResults.querySelector('[data-search-page]')?.click();
+    if (event.key === 'Enter') {
+      const selected = searchResults.querySelector('.search-result.selected') || searchResults.querySelector('[data-search-page]');
+      selected?.click();
+    }
   });
   document.addEventListener('keydown', event => {
     const key = event.key.toLowerCase();
