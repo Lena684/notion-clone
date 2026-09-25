@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f6f6f3">
+    <meta name="description" content="A private, local-first home for your notes and ideas.">
+    <title>Fieldnotes · Your workspace</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Workspace navigation">
+        <div class="sidebar-top">
+          <a class="brand" href="#home" aria-label="Fieldnotes home">
+            <span class="brand-mark" aria-hidden="true">f</span>
+            <span>fieldnotes</span>
+            <span class="workspace-switch" aria-hidden="true">⌄</span>
+          </a>
+          <button class="icon-button mobile-close" type="button" aria-label="Close navigation" data-action="close-sidebar">×</button>
+        </div>
+
+        <div class="sidebar-tools">
+          <button class="nav-row subtle" type="button" data-action="search"><span class="nav-icon">⌕</span><span>Quick find</span><kbd>⌘ K</kbd></button>
+          <button class="nav-row subtle" type="button" data-action="new-page"><span class="nav-icon plus">＋</span><span>New page</span><kbd>⌘ N</kbd></button>
+        </div>
+
+        <div class="nav-section pages-section">
+          <div class="section-heading"><span>Pages</span><button type="button" class="tiny-action" aria-label="Create page" title="Create page" data-action="new-page">＋</button></div>
+          <nav id="pages-nav" class="page-nav" aria-label="Pages"></nav>
+        </div>
+
+        <div class="nav-section">
+          <div class="section-heading"><span>Databases</span></div>
+          <nav id="collections-nav" class="page-nav" aria-label="Database pages"></nav>
+        </div>
+
+        <div class="sidebar-spacer"></div>
+        <div class="sidebar-bottom">
+          <div class="storage-note"><span class="privacy-mark" aria-hidden="true">◉</span><span><strong>Your space is private</strong><small>Stored in local SQLite</small></span></div>
+          <button class="nav-row subtle" type="button" data-action="settings"><span class="nav-icon">⚙</span><span>Settings & export</span></button>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <button class="icon-button menu-trigger" type="button" aria-label="Open navigation" data-action="open-sidebar">☰</button>
+          <div class="breadcrumbs" id="breadcrumbs"><span>Private</span><span class="crumb-divider">/</span><strong>Home</strong></div>
+          <div class="topbar-actions">
+            <span class="save-indicator" id="save-indicator"><i></i> All changes saved</span>
+            <button class="topbar-button" type="button" data-action="share" title="Copy a link to this page">↗ <span>Copy link</span></button>
+            <button class="icon-button more-button" type="button" aria-label="More page actions" data-action="page-menu">···</button>
+          </div>
+        </header>
+
+        <div class="workspace-content" id="workspace-content" tabindex="-1"></div>
+      </main>
+    </div>
+
+    <div class="search-overlay" id="search-overlay" hidden>
+      <div class="search-backdrop" data-action="close-search"></div>
+      <section class="search-dialog" role="dialog" aria-modal="true" aria-labelledby="search-title">
+        <h2 class="visually-hidden" id="search-title">Search your workspace</h2>
+        <label class="search-input-wrap"><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Search pages, notes, and more…" autocomplete="off"><kbd>ESC</kbd></label>
+        <div class="search-results" id="search-results"><p class="search-hint">Type to search your workspace</p></div>
+        <footer class="search-footer"><span><kbd>↑</kbd><kbd>↓</kbd> to navigate</span><span><kbd>↵</kbd> to open</span></footer>
+      </section>
+    </div>
+
+    <div class="modal-overlay" id="database-dialog" hidden>
+      <div class="modal-backdrop" data-action="close-database-dialog"></div>
+      <section class="schema-dialog" role="dialog" aria-modal="true" aria-labelledby="schema-title">
+        <header class="schema-header"><div><h2 id="schema-title">Set up your database</h2><p>Choose the columns for this page.</p></div><button class="icon-button" type="button" data-action="close-database-dialog" aria-label="Close">×</button></header>
+        <form id="schema-form">
+          <div class="schema-columns-heading"><span>Column name</span><span>Type</span><span>Options</span><span class="visually-hidden">Remove</span></div>
+          <div id="schema-columns"></div>
+          <button class="add-column" type="button" data-action="add-column">＋ Add a column</button>
+          <footer class="schema-footer"><button class="button-secondary" type="button" data-action="close-database-dialog">Cancel</button><button class="button-primary" type="submit">Create database</button></footer>
+        </form>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
